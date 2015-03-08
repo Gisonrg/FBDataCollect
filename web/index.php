@@ -15,15 +15,30 @@ $app->register(new Silex\Provider\TwigServiceProvider(), array(
 ));
 
 // regester database
+if (!($checkEnv = getenv('DATABASE_URL'))) {
+	$dbsetting = "postgres://Gison@localhost:5432/fb_data";
+	putenv("DATABASE_URL=".$dbsetting);
+	echo getenv('DATABASE_URL');
+}
+
 $dbopts = parse_url(getenv('DATABASE_URL'));
-$app->register(new Herrera\Pdo\PdoServiceProvider(),
-  array(
-    'pdo.dsn' => 'pgsql:dbname='.ltrim($dbopts["path"],'/').';host='.$dbopts["host"],
-    'pdo.port' => $dbopts["port"],
-    'pdo.username' => $dbopts["user"],
-    'pdo.password' => $dbopts["pass"]
-  )
-);
+
+print_r($dbopts);
+
+if (!isset($dbopts["pass"])) {
+	$dbopts["pass"] = '';
+}
+
+$app->register(new Silex\Provider\DoctrineServiceProvider(), array(
+    'db.options' => array(
+    	'host' => $dbopts["host"],
+        'driver'   => 'pdo_pgsql',
+        'dbname'   => ltrim($dbopts["path"],'/'),
+        'port'     => $dbopts["port"],
+        'user'    => $dbopts["user"],
+        'password'  => $dbopts["pass"]
+    ),
+));
 
 // Our web handlers
 
@@ -43,18 +58,15 @@ $app->get('/twig/{name}', function ($name) use ($app) {
 });
 
 $app->get('/db/', function() use($app) {
-  $st = $app['pdo']->prepare('SELECT name FROM test_table');
-  $st->execute();
-
-  $names = array();
-  while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
-    $app['monolog']->addDebug('Row ' . $row['name']);
-    $names[] = $row;
-  }
-
-  return $app['twig']->render('database.twig', array(
-    'names' => $names
-  ));
+	$sql = "SELECT name FROM test_table";
+	$post = array();
+	$stmt = $app['db']->query($sql);
+	while ($row = $stmt->fetch()) {
+    	$post[] = $row;
+	}
+	return $app['twig']->render('database.twig', array(
+	   'names' => $post
+	));
 });
 
 $app->run();
