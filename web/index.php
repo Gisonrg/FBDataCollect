@@ -66,13 +66,16 @@ $app->get('/fb', function () use ($app, $helper) {
     try {
         $session = $helper->getSessionFromRedirect();
     } catch( FacebookRequestException $ex ) {
+        $app['monolog']->addDebug('facebook error.');
         // When Facebook returns an error
     } catch( Exception $ex ) {
         // When validation fails or other local issues
+        $app['monolog']->addDebug('exception bug.');
     }
 
     $graphArray = array();
     if ( isset( $session ) ) {
+    $app['monolog']->addDebug('enter session.');
       // graph api request for user data
       $request = new FacebookRequest( $session, 'GET', '/me' );
       $response = $request->execute();
