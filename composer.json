@@ -5,7 +5,8 @@
     "twig/twig": "~1.0",
     "herrera-io/silex-pdo": "~1.2",
     "facebook/php-sdk-v4" : "4.0.*",
-    "doctrine/dbal" :      "~2.4"
+    "doctrine/dbal" :      "~2.4",
+    "ext-mbstring": "*"
   },
   "require-dev": {
     "heroku/heroku-buildpack-php": "*"
