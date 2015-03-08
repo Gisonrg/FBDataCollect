@@ -18,12 +18,9 @@ $app->register(new Silex\Provider\TwigServiceProvider(), array(
 if (!($checkEnv = getenv('DATABASE_URL'))) {
 	$dbsetting = "postgres://Gison@localhost:5432/fb_data";
 	putenv("DATABASE_URL=".$dbsetting);
-	echo getenv('DATABASE_URL');
 }
 
 $dbopts = parse_url(getenv('DATABASE_URL'));
-
-print_r($dbopts);
 
 if (!isset($dbopts["pass"])) {
 	$dbopts["pass"] = '';
