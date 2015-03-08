@@ -24,7 +24,7 @@ $app->register(new Silex\Provider\TwigServiceProvider(), array(
   'twig.path' => __DIR__.'/../views',
 ));
 
-$helper = new FacebookRedirectLoginHelper('http://localhost:8888/fb-survey/web/fb');
+$helper = new FacebookRedirectLoginHelper('https://socialmedia-survey.herokuapp.com/fb');
 
 // regester database
 if (!($checkEnv = getenv('DATABASE_URL'))) {
