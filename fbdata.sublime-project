@@ -1,0 +1,13 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "/Users/Gison/localhost/fbdata"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "."
+		}
+	]
+}

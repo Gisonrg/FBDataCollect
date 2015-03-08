@@ -1,8 +1,18 @@
 <?php
+session_start();
 
 require('../vendor/autoload.php');
 
+use Facebook\FacebookSession;
+use Facebook\FacebookRedirectLoginHelper;
+use Facebook\FacebookRequest;
+use Facebook\GraphUser;
+use Facebook\FacebookRequestException;
 $app = new Silex\Application();
+
+FacebookSession::setDefaultApplication('743548142431404','a5a20ef6df1b0d6f196e615d3e50fb48');
+
+
 $app['debug'] = true;
 
 // Register the monolog logging service
@@ -13,6 +23,8 @@ $app->register(new Silex\Provider\MonologServiceProvider(), array(
 $app->register(new Silex\Provider\TwigServiceProvider(), array(
   'twig.path' => __DIR__.'/../views',
 ));
+
+$helper = new FacebookRedirectLoginHelper('http://localhost:8888/fb-survey/web/fb');
 
 // regester database
 if (!($checkEnv = getenv('DATABASE_URL'))) {
@@ -39,13 +51,44 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
 
 // Our web handlers
 
-$app->get('/', function() use($app) {
+$app->get('/', function() use($app, $helper) {
   $app['monolog']->addDebug('logging output.');
-  return 'Hello';
+  // $scope = array('user_status');
+
+  // $loginURL = $helper->getLoginUrl($scope);
+    $loginURL = $helper->getLoginUrl();
+  return $app['twig']->render('index.twig', array(
+        'loginURL' => $loginURL,
+  ));
 });
 
-$app->get('/hello/{name}', function ($name) use ($app) {
-    return 'Hello '.$app->escape($name);
+$app->get('/fb', function () use ($app, $helper) {
+    try {
+        $session = $helper->getSessionFromRedirect();
+    } catch( FacebookRequestException $ex ) {
+        // When Facebook returns an error
+    } catch( Exception $ex ) {
+        // When validation fails or other local issues
+    }
+
+    $graphArray = array();
+    if ( isset( $session ) ) {
+      // graph api request for user data
+      $request = new FacebookRequest( $session, 'GET', '/me' );
+      $response = $request->execute();
+      // get response
+      $graphObject = $response->getGraphObject();
+
+      // print data
+      // get array
+      $graphArray = $graphObject->asArray();
+    }
+
+    return $app['twig']->render('result.twig', array(
+        'name' => $graphArray['name'],
+        'gender' => $graphArray['gender'],
+        'page_link' => $graphArray['link']
+    ));
 });
 
 $app->get('/twig/{name}', function ($name) use ($app) {
