@@ -163,7 +163,7 @@ $app->get('/fb', function () use ($app, $helper) {
 
 $app->get('/finish', function() use($app) {
     if (!isset($_SESSION['userCode'])) {
-        $_SESSION['userCode'] = 1234;
+        $_SESSION['userCode'] = "Invalid Visit";
     }
     $displayCode = $_SESSION['userCode'];
     unset($_SESSION['userCode']); // only shown code once!
