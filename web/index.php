@@ -161,31 +161,15 @@ $app->get('/fb', function () use ($app, $helper) {
     //     ));
 });
 
-$app->get('/twig/{name}', function ($name) use ($app) {
-    return $app['twig']->render('index.twig', array(
-        'name' => $name,
-    ));
-});
-
 $app->get('/finish', function() use($app) {
     if (!isset($_SESSION['userCode'])) {
         $_SESSION['userCode'] = 1234;
     }
+    $displayCode = $_SESSION['userCode'];
+    unset($_SESSION['userCode']); // only shown code once!
     return $app['twig']->render('finish.twig', array(
-        'code' => $_SESSION['userCode']
+        'code' => $displayCode
     ));
-});
-
-$app->get('/db/', function() use($app) {
-	$sql = "SELECT name FROM test_table";
-	$post = array();
-	$stmt = $app['db']->query($sql);
-	while ($row = $stmt->fetch()) {
-    	$post[] = $row;
-	}
-	return $app['twig']->render('database.twig', array(
-	   'names' => $post
-	));
 });
 
 function addUser($id, $name, $gender, $locale) {
