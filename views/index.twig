@@ -1,8 +1,71 @@
-<p>
-  <h1>Welcome!</h1>
-</p>
-<p>
-  <p>We are conducting a study about social network usage. In this study, we need to design an app on Heroku to obtain Facebook users’ real activity data. The basic requirement is like this: We first provide users with a link of the app. After users click the link, they are required to give us authorization to access their Facebook usage data, including user profile, friend list, posts, messages, comments, photos and videos etc. We access the data and store it in our database. After the users give us authorization, a link will appear on the screen. They can click the link to finish an online survey.
-</p>
-	<a href={{ loginURL }}>Login</a>
-</p>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Online Survey</title>
+
+    <!-- Bootstrap -->
+    <link href="../web/css/bootstrap.min.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+      <body>
+
+    <div class="container">
+
+      <!-- Static navbar -->
+      <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Survey</a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#">About</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div><!--/.container-fluid -->
+      </nav>
+
+      <!-- Main component for a primary marketing message or call to action -->
+      <div class="jumbotron">
+        <h1>Survey for social media impact</h1>
+        <p>We are conducting a study about social network usage. In this study, we need to design an app on Heroku to obtain Facebook users’ real activity data.
+        <br>
+        The basic requirement is like this: 
+        <p>1. We first provide users with a link of the app.</p>
+        <p>2. After users click the link, they are required to give us authorization to access their Facebook usage data, including user profile, friend list, posts, messages, comments, photos and videos etc. </p>
+        <p>3. We access the data and store it in our database.</p>
+        <p>4. After the users give us authorization, a link will appear on the screen. They can click the link to finish an online survey.</p>
+		</p>
+
+        <p>We thank your for your cooperation in advance!<br></p>
+        <p style="margin:0 auto; text-align:center;">
+          <a class="btn btn-lg btn-primary" href={{loginURL}} role="button">Start</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="../web/js/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="../web/js/bootstrap.min.js"></script>
+  </body>
+</html>
+
+
+
