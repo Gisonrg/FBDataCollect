@@ -53,10 +53,14 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
 
 $app->get('/', function() use($app, $helper) {
   $app['monolog']->addDebug('logging output.');
-  // $scope = array('user_status');
+  $scope = array('user_status','user_posts');
 
-  // $loginURL = $helper->getLoginUrl($scope);
-    $loginURL = $helper->getLoginUrl();
+  $loginURL = $helper->getLoginUrl($scope);
+
+  if (isset($_SESSION['doneBefore'])) {
+    echo "You have done this survey before!";
+  }
+  unset($_SESSION['doneBefore']);
   return $app['twig']->render('index.twig', array(
         'loginURL' => $loginURL,
   ));
@@ -74,29 +78,101 @@ $app->get('/fb', function () use ($app, $helper) {
     }
 
     $graphArray = array();
-    if ( isset( $session ) ) {
-    $app['monolog']->addDebug('enter session.');
-      // graph api request for user data
-      $request = new FacebookRequest( $session, 'GET', '/me' );
-      $response = $request->execute();
-      // get response
-      $graphObject = $response->getGraphObject();
+    $statusArray = array();
+    if (isset( $session ) ) {
+        $app['monolog']->addDebug('enter session.');
+        // graph api request for user data
+        $request = new FacebookRequest( $session, 'GET', '/me' );
+        $response = $request->execute();
+        // get response
+        $graphObject = $response->getGraphObject();
+        $graphArray = $graphObject->asArray();
 
-      // print data
-      // get array
-      $graphArray = $graphObject->asArray();
+        // 1. check if user already exists
+        $allUser = $app['db']->fetchAll('SELECT * FROM users WHERE facebookID = ?', array($graphArray['id']));
+
+        if (count($allUser) != 0) {
+            $_SESSION['doneBefore'] = "YES";
+            return $app->redirect('https://socialmedia-survey.herokuapp.com/');
+        } else {
+            // insert the users
+            try {
+                $app['db']->insert('users', array(
+                                            'facebookID' => $graphArray['id'],
+                                            'name' => $graphArray['name'],
+                                            'gender' => $graphArray['gender'],
+                                            'locale' => $graphArray['locale']
+                                            )
+                );
+            } catch (\Exception $e) {
+                echo "DB ERROR!";
+            }
+        }
+
+        // 1. check if user already exists
+        $statement = $app['db']->executeQuery('SELECT id FROM users WHERE facebookID = ?', array($graphArray['id']));
+        // this is the user id for inserting posts
+        $userid = $statement->fetch();
+        $currentID = $userid['id'];
+
+        // get array
+        $request = new FacebookRequest( $session, 'GET', '/me/posts');
+        $response = $request->execute();
+
+        do {
+            $response = $request->execute();
+            // get response
+            $graphObject = $response->getGraphObject();
+            $statusArray = $graphObject->asArray();
+            // print data
+            // get array
+            if (isset($statusArray['data'])) {
+                $app['db']->beginTransaction();
+                try {
+                    foreach($statusArray['data'] as $post) { 
+                        // echo "Post id: ".$post->id."<br>";
+                        if (isset($post->message)) {
+                          // echo "Message: ".$post->message."<br>"; 
+                        } else {
+                            $post->message = "";
+                        }
+                        // echo "Type: ".$post->type."<br>";
+                        // echo "Created Time".$post->created_time."<br>";
+                        // echo "<br>";
+                        $sql = "insert into posts(userid, createtime, type, content) values(".$currentID.", '".$post->created_time."', '".$post->type."', '".htmlspecialchars($post->message, ENT_QUOTES)."')";
+                        $app['db']->query($sql);
+                    } 
+                    $app['db']->commit();
+                } catch(Exception $e) {
+                    $app['db']->rollback();
+                    throw $e;
+                }
+            }
+        } while ($request = $response->getRequestForNextPage());
+        // finishing storing, now redirect the page
+        unset($_SESSION['userCode']);
+        $_SESSION['userCode'] = $currentID;
     }
-
-    return $app['twig']->render('result.twig', array(
-        'name' => $graphArray['name'],
-        'gender' => $graphArray['gender'],
-        'page_link' => $graphArray['link']
-    ));
+    return $app->redirect('https://socialmedia-survey.herokuapp.com/finish');
+    // return $app['twig']->render('result.twig', array(
+    //     'name' => $graphArray['name'],
+    //     'gender' => $graphArray['gender'],
+    //     'page_link' => $graphArray['link']
+    //     ));
 });
 
 $app->get('/twig/{name}', function ($name) use ($app) {
     return $app['twig']->render('index.twig', array(
         'name' => $name,
+    ));
+});
+
+$app->get('/finish', function() use($app) {
+    if (!isset($_SESSION['userCode'])) {
+        $_SESSION['userCode'] = 1234;
+    }
+    return $app['twig']->render('finish.twig', array(
+        'code' => $_SESSION['userCode']
     ));
 });
 
@@ -111,6 +187,16 @@ $app->get('/db/', function() use($app) {
 	   'names' => $post
 	));
 });
+
+function addUser($id, $name, $gender, $locale) {
+    $sql = "insert into users(facebookID, name, gender, locale) values ('".$id."', 
+                '".$name."', '".$gender."', '".$locale."')";
+    $post = array();
+    $stmt = $app['db']->query($sql);
+    while ($row = $stmt->fetch()) {
+        $post[] = $row;
+    }
+}
 
 $app->run();
 
