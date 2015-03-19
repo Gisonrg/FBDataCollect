@@ -2,12 +2,14 @@
 session_start();
 
 require('../vendor/autoload.php');
+require('config.php');
 
 use Facebook\FacebookSession;
 use Facebook\FacebookRedirectLoginHelper;
 use Facebook\FacebookRequest;
 use Facebook\GraphUser;
 use Facebook\FacebookRequestException;
+
 $app = new Silex\Application();
 
 FacebookSession::setDefaultApplication('743548142431404','a5a20ef6df1b0d6f196e615d3e50fb48');
@@ -24,11 +26,11 @@ $app->register(new Silex\Provider\TwigServiceProvider(), array(
   'twig.path' => __DIR__.'/../views',
 ));
 
-$helper = new FacebookRedirectLoginHelper('https://socialmedia-survey.herokuapp.com/fb');
-
+// $helper = new FacebookRedirectLoginHelper('https://socialmedia-survey.herokuapp.com/fb');
+$helper = new FacebookRedirectLoginHelper('http://localhost:8888/fb-survey/web/fb');
 // regester database
 if (!($checkEnv = getenv('DATABASE_URL'))) {
-	$dbsetting = "postgres://Gison@localhost:5432/fb_data";
+	$dbsetting = $devDB;
 	putenv("DATABASE_URL=".$dbsetting);
 }
 
@@ -53,7 +55,7 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
 
 $app->get('/', function() use($app, $helper) {
   $app['monolog']->addDebug('logging output.');
-  $scope = array('user_status','user_posts');
+  $scope = array('user_status','user_posts','user_friends', 'user_likes');
 
   $loginURL = $helper->getLoginUrl($scope);
 
@@ -61,10 +63,14 @@ $app->get('/', function() use($app, $helper) {
     echo "You have done this survey before!";
   }
   unset($_SESSION['doneBefore']);
+
+
   return $app['twig']->render('index.twig', array(
-        'loginURL' => $loginURL,
+        'loginURL' => $loginURL
   ));
 });
+
+$session = null;
 
 $app->get('/fb', function () use ($app, $helper) {
     try {
@@ -76,7 +82,7 @@ $app->get('/fb', function () use ($app, $helper) {
         // When validation fails or other local issues
         $app['monolog']->addDebug('exception bug.');
     }
-
+        
     $graphArray = array();
     $statusArray = array();
     if (isset( $session ) ) {
@@ -93,7 +99,7 @@ $app->get('/fb', function () use ($app, $helper) {
 
         if (count($allUser) != 0) {
             $_SESSION['doneBefore'] = "YES";
-            return $app->redirect('https://socialmedia-survey.herokuapp.com/');
+            return $app->redirect('http://localhost:8888/fb-survey/web/');
         } else {
             // insert the users
             try {
@@ -129,19 +135,24 @@ $app->get('/fb', function () use ($app, $helper) {
             if (isset($statusArray['data'])) {
                 $app['db']->beginTransaction();
                 try {
-                    foreach($statusArray['data'] as $post) { 
-                        // echo "Post id: ".$post->id."<br>";
+                    foreach($statusArray['data'] as $post) {
                         if (isset($post->message)) {
-                          // echo "Message: ".$post->message."<br>"; 
                         } else {
                             $post->message = "";
                         }
-                        // echo "Type: ".$post->type."<br>";
-                        // echo "Created Time".$post->created_time."<br>";
-                        // echo "<br>";
-                        $sql = "insert into posts(userid, createtime, type, content) values(".$currentID.", '".$post->created_time."', '".$post->type."', '".htmlspecialchars($post->message, ENT_QUOTES)."')";
+                        $sql = "insert into posts(userID, postID, createTime, type, content) values(".$currentID.", '".$post->id."', '".$post->created_time."', '".$post->type."', '".htmlspecialchars($post->message, ENT_QUOTES)."')";
                         $app['db']->query($sql);
-                    } 
+                        if (isset($post->comments)) {
+                            foreach($post->comments->data as $comment) { 
+                                if (isset($comment->message)) {
+                                } else {
+                                    $comment->message = "";
+                                }
+                                $sql = "insert into comments(commentID, postID, createTime, likes, content) values('".$comment->id."', '".$post->id."', '".$comment->created_time."', '".$comment->like_count."', '".htmlspecialchars($comment->message, ENT_QUOTES)."')";
+                                $app['db']->query($sql);
+                            }
+                        }
+                    }
                     $app['db']->commit();
                 } catch(Exception $e) {
                     $app['db']->rollback();
@@ -149,16 +160,25 @@ $app->get('/fb', function () use ($app, $helper) {
                 }
             }
         } while ($request = $response->getRequestForNextPage());
+
+        // get friends
+        // get array
+        $request = new FacebookRequest( $session, 'GET', '/me/friends');
+        $response = $request->execute();
+        // get response
+        $graphObject = $response->getGraphObject();
+        $friendsArray = $graphObject->asArray();
+        // print data
+        // get array
+        print_r($friendsArray['summary']->total_count);
+        // update friends number
+        $app['db']->executeQuery('UPDATE users SET no_friends = ? where id = ?', array($friendsArray['summary']->total_count, $currentID));
         // finishing storing, now redirect the page
         unset($_SESSION['userCode']);
         $_SESSION['userCode'] = $currentID;
     }
-    return $app->redirect('https://socialmedia-survey.herokuapp.com/finish');
-    // return $app['twig']->render('result.twig', array(
-    //     'name' => $graphArray['name'],
-    //     'gender' => $graphArray['gender'],
-    //     'page_link' => $graphArray['link']
-    //     ));
+    // return $app->redirect('http://localhost:8888/fb-survey/web/finish');
+    return "hehe";
 });
 
 $app->get('/finish', function() use($app) {
