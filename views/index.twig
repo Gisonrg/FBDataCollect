@@ -34,16 +34,23 @@
           </div>
           <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-              <li class="active"><a href="#">Home</a></li>
+              <li class="active"><a href="/">Home</a></li>
               <li><a href="#">About</a></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div><!--/.container-fluid -->
       </nav>
+      {% if isShowAlert == true %}
+        <div class="alert alert-danger alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Oops!</strong> It seems that you have done this survery before.
+      </div>
+      {% endif %}
+      
 
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
-        <h1>Survey for social media impact</h1>
+        <h1>Survey for social media impact.</h1>
         <p>We are conducting a study about social network usage. In this study, we need to design an app on Heroku to obtain Facebook users’ real activity data.
         <br>
         The basic requirement is like this: 
@@ -51,17 +58,36 @@
         <p>2. After users click the link, they are required to give us authorization to access their Facebook usage data, including user profile, friend list, posts, messages, comments, photos and videos etc. </p>
         <p>3. We access the data and store it in our database.</p>
         <p>4. After the users give us authorization, a link will appear on the screen. They can click the link to finish an online survey.</p>
-		</p>
+		  </p>
 
         <p>We thank your for your cooperation in advance!<br></p>
         <p style="margin:0 auto; text-align:center;">
 
-          <a class="btn btn-lg btn-primary" href={{loginURL}} role="button">Start</a>
+          <a class="btn btn-lg btn-primary" data-toggle="modal" data-target="#myModal" role="button">Start</a>
 
         </p>
       </div>
 
     </div> <!-- /container -->
+
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Attention:</h4>
+          </div>
+          <div class="modal-body">
+            After you have logined the Facebook, you will be redirect back for data processing. <br>
+            Please do not close your browser until a finishing page shows up. 
+            <br>Thank you.
+          </div>
+          <div class="modal-footer">
+            <a class="btn btn-lg btn-primary" href={{loginURL}}>Login Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="js/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->

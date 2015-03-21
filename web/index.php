@@ -2,7 +2,7 @@
 session_start();
 
 require('../vendor/autoload.php');
-require('config.php');
+$config = require('config.php');
 
 use Facebook\FacebookSession;
 use Facebook\FacebookRedirectLoginHelper;
@@ -12,7 +12,7 @@ use Facebook\FacebookRequestException;
 
 $app = new Silex\Application();
 
-FacebookSession::setDefaultApplication('743548142431404','a5a20ef6df1b0d6f196e615d3e50fb48');
+FacebookSession::setDefaultApplication($config['appKey'], $config['appSecret']);
 
 
 $app['debug'] = true;
@@ -26,11 +26,16 @@ $app->register(new Silex\Provider\TwigServiceProvider(), array(
   'twig.path' => __DIR__.'/../views',
 ));
 
-// $helper = new FacebookRedirectLoginHelper('https://socialmedia-survey.herokuapp.com/fb');
-$helper = new FacebookRedirectLoginHelper('http://localhost:8888/fb-survey/web/fb');
+if ($config['isDev']) {
+    $helper = new FacebookRedirectLoginHelper($config['devFB']);
+} else {
+    $helper = new FacebookRedirectLoginHelper($config['productFB']);
+}
+// $helper = new FacebookRedirectLoginHelper('http://localhost:8888/fb-survey/web/fb');
+
 // regester database
 if (!($checkEnv = getenv('DATABASE_URL'))) {
-	$dbsetting = $devDB;
+	$dbsetting = $config['devDB'];
 	putenv("DATABASE_URL=".$dbsetting);
 }
 
@@ -53,26 +58,26 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
 
 // Our web handlers
 
-$app->get('/', function() use($app, $helper) {
+$app->get('/', function() use($app, $helper, $config) {
   $app['monolog']->addDebug('logging output.');
-  $scope = array('user_status','user_posts','user_friends', 'user_likes');
+  $scope = array('user_status','user_posts','user_friends', 'read_mailbox');
 
   $loginURL = $helper->getLoginUrl($scope);
-
+  $showAlert = false;
   if (isset($_SESSION['doneBefore'])) {
-    echo "You have done this survey before!";
+    $showAlert = true;
   }
   unset($_SESSION['doneBefore']);
 
-
   return $app['twig']->render('index.twig', array(
-        'loginURL' => $loginURL
+        'loginURL' => $loginURL,
+        'isShowAlert' => $showAlert
   ));
 });
 
 $session = null;
 
-$app->get('/fb', function () use ($app, $helper) {
+$app->get('/fb', function () use ($app, $helper, $config) {
     try {
         $session = $helper->getSessionFromRedirect();
     } catch( FacebookRequestException $ex ) {
@@ -99,7 +104,12 @@ $app->get('/fb', function () use ($app, $helper) {
 
         if (count($allUser) != 0) {
             $_SESSION['doneBefore'] = "YES";
-            return $app->redirect('http://localhost:8888/fb-survey/web/');
+            
+            if ($config['isDev']) {
+                return $app->redirect($config['devHome']);
+            } else {
+                return $app->redirect($config['productHome']);
+            }
         } else {
             // insert the users
             try {
@@ -168,20 +178,48 @@ $app->get('/fb', function () use ($app, $helper) {
         // get response
         $graphObject = $response->getGraphObject();
         $friendsArray = $graphObject->asArray();
-        // print data
-        // get array
-        print_r($friendsArray['summary']->total_count);
+
         // update friends number
         $app['db']->executeQuery('UPDATE users SET no_friends = ? where id = ?', array($friendsArray['summary']->total_count, $currentID));
+
+        // get inbox message
+        $request = new FacebookRequest( $session, 'GET', '/me/inbox');
+        $response = $request->execute();
+        // get response
+        $graphObject = $response->getGraphObject();
+        $inbox = $graphObject->asArray();
+
+        foreach($inbox['data'] as $message) {
+            if (isset($message->comments)) {
+                $app['db']->beginTransaction();
+                try {
+                    foreach($message->comments->data as $comment) {
+                        if (isset($comment->message)) {
+                            $sql = "insert into posts(userID, postID, createTime, type, content) values(".$currentID.", '".$comment->id."', '".$comment->created_time."', 'message', '".htmlspecialchars($comment->message, ENT_QUOTES)."')";
+                            // echo $comment->message." at time ".$comment->created_time;
+                            $app['db']->query($sql);
+                        }
+                    }
+                    $app['db']->commit();
+                } catch(Exception $e) {
+                    $app['db']->rollback();
+                    throw $e;
+                }
+            } 
+        }
         // finishing storing, now redirect the page
         unset($_SESSION['userCode']);
         $_SESSION['userCode'] = $currentID;
     }
-    // return $app->redirect('http://localhost:8888/fb-survey/web/finish');
-    return "hehe";
+
+    if ($config['isDev']) {
+        return $app->redirect($config['devFinish']);
+    } else {
+        return $app->redirect($config['productFinish']);
+    }
 });
 
-$app->get('/finish', function() use($app) {
+$app->get('/finish', function() use($app, $config) {
     if (!isset($_SESSION['userCode'])) {
         $_SESSION['userCode'] = "Invalid Visit";
     }
