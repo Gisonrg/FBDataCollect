@@ -210,6 +210,12 @@ $app->get('/fb', function () use ($app, $helper, $config) {
         // finishing storing, now redirect the page
         unset($_SESSION['userCode']);
         $_SESSION['userCode'] = $currentID;
+    } else {
+        if ($config['isDev']) {
+            return $app->redirect($config['devHome']);
+        } else {
+            return $app->redirect($config['productHome']);
+        }
     }
 
     if ($config['isDev']) {
@@ -221,7 +227,11 @@ $app->get('/fb', function () use ($app, $helper, $config) {
 
 $app->get('/finish', function() use($app, $config) {
     if (!isset($_SESSION['userCode'])) {
-        $_SESSION['userCode'] = "Invalid Visit";
+        if ($config['isDev']) {
+            return $app->redirect($config['devHome']);
+        } else {
+            return $app->redirect($config['productHome']);
+        }
     }
     $displayCode = $_SESSION['userCode'];
     unset($_SESSION['userCode']); // only shown code once!
