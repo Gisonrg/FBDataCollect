@@ -35,7 +35,6 @@
           <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
               <li class="active"><a href="/">Home</a></li>
-              <li><a href="#">About</a></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div><!--/.container-fluid -->
@@ -50,17 +49,20 @@
 
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
-        <h1>Survey for social media impact.</h1>
-        <p>We are conducting a study about social network usage. In this study, we need to design an app on Heroku to obtain Facebook users’ real activity data.
+      <div style="text-align:center;"><h1>Survey for social media impact</h1></div>
+        
+        
+        <p>Thank you for participating in this study. This is an academic study aimed at understanding your Facebook usage. There are <b>two steps</b> to complete the study. </p>
+        <p><b>Step 1:</b> You need to give permission to access your Facebook profile, friend list, posts, photos, videos, messages and your friends’ comments on your posts. 
+        </p>
+        <p><b>Step 2:</b> You will be given a survey ID after you finish step 1. Copy the survey ID, and click the link to an online survey. Paste the survey ID as the answer to the first question of the online survey. Complete the rest part of the online survey.
+        </p>
+        
+        <br><br>
+        <p>After you finish these two steps, you will be given <spen style="color:red;">$10</spen> as reimbursement for your effort. Please be informed that all information recorded in this study will be kept strictly confidential, and will only be used for research purposes.</p>
+        <p>Now please click the following button to give us permission to access your Facebook profile, friend list, posts, photos, videos, messages and your friends’ comments on your posts. 
         <br>
-        The basic requirement is like this: 
-        <p>1. We first provide users with a link of the app.</p>
-        <p>2. After users click the link, they are required to give us authorization to access their Facebook usage data, including user profile, friend list, posts, messages, comments, photos and videos etc. </p>
-        <p>3. We access the data and store it in our database.</p>
-        <p>4. After the users give us authorization, a link will appear on the screen. They can click the link to finish an online survey.</p>
-		  </p>
-
-        <p>We thank your for your cooperation in advance!<br></p>
+        </p>
         <p style="margin:0 auto; text-align:center;">
 
           <a class="btn btn-lg btn-primary" data-toggle="modal" data-target="#myModal" role="button">Start</a>
@@ -78,11 +80,13 @@
             <h4 class="modal-title" id="myModalLabel">Attention:</h4>
           </div>
           <div class="modal-body">
-            After you have logined the Facebook, you will be redirect back for data processing. <br>
+            Facebook Usage app will receive the following info: your public profile, friend list, posts, messages, comments, photos and videos
+            <br>
             Please do not close your browser until a finishing page shows up. 
             <br>Thank you.
           </div>
           <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
             <a class="btn btn-lg btn-primary" href={{loginURL}}>Login Now</a>
           </div>
         </div>
