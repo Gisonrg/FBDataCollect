@@ -60,7 +60,9 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
 
 $app->get('/', function() use($app, $helper, $config) {
   $app['monolog']->addDebug('logging output.');
-  $scope = array('user_status','user_posts','user_friends', 'read_mailbox');
+  $scope = array('user_status','user_posts','user_friends','read_mailbox',
+    'user_about_me', 'user_birthday', 'user_hometown','user_location', 'user_work_history',
+    'user_interests', 'user_likes','user_tagged_places','user_education_history');
 
   $loginURL = $helper->getLoginUrl($scope);
   $showAlert = false;
@@ -98,7 +100,6 @@ $app->get('/fb', function () use ($app, $helper, $config) {
         // get response
         $graphObject = $response->getGraphObject();
         $graphArray = $graphObject->asArray();
-
         // 1. check if user already exists
         $allUser = $app['db']->fetchAll('SELECT * FROM users WHERE facebookID = ?', array($graphArray['id']));
 
@@ -112,16 +113,82 @@ $app->get('/fb', function () use ($app, $helper, $config) {
             }
         } else {
             // insert the users
+            if (isset($graphArray['hometown'])) {
+                $hometown = $graphArray['hometown']->name;
+            } else {
+                $hometown = "";
+            }
+
+            if (isset($graphArray['birthday'])) {
+                $birthday = $graphArray['birthday'];
+            } else {
+                $birthday = "";
+            }
+
+            if (isset($graphArray['location'])) {
+                $location = $graphArray['location'] -> name;
+            } else {
+                $location = "";
+            }
+
+            if (isset($graphArray['bio'])) {
+                $bio = $graphArray['bio'];
+            } else {
+                $bio = "";
+            }
+
             try {
                 $app['db']->insert('users', array(
                                             'facebookID' => $graphArray['id'],
                                             'name' => $graphArray['name'],
                                             'gender' => $graphArray['gender'],
-                                            'locale' => $graphArray['locale']
+                                            'hometown' => $hometown,
+                                            'location' => $location,
+                                            'birthday' => $birthday,
+                                            'bio' => $bio
                                             )
                 );
             } catch (\Exception $e) {
                 echo "DB ERROR!";
+            }
+            if (isset($graphArray['education'])) {
+                foreach($graphArray['education'] as $school) {
+                    try {
+                        $app['db']->insert('education', array(
+                                                    'facebookID' => $graphArray['id'],
+                                                    'type' => $school->type,
+                                                    'school' => $school->school->name
+                                                    )
+                        );
+                    } catch (\Exception $e) {
+                        echo "DB ERROR!";
+                    }
+                }
+            }
+
+            if (isset($graphArray['work'])) {
+                foreach($graphArray['work'] as $work) {
+                    if (isset($work->employer)) {
+                        $employer = $work->employer->name;
+                    } else {
+                        $employer = "";
+                    }
+                    if (isset($work->position)) {
+                        $position = $work->position->name;
+                    } else {
+                        $position = "";
+                    }
+                    try {
+                        $app['db']->insert('work', array(
+                                                    'facebookID' => $graphArray['id'],
+                                                    'employer' => $employer,
+                                                    'position' => $position
+                                                    )
+                        );
+                    } catch (\Exception $e) {
+                        echo "DB ERROR!";
+                    }
+                }
             }
         }
 
@@ -131,10 +198,95 @@ $app->get('/fb', function () use ($app, $helper, $config) {
         $userid = $statement->fetch();
         $currentID = $userid['id'];
 
+        // Get user's interest
+        $request = new FacebookRequest( $session, 'GET', '/me/interests');
+        $response = $request->execute();
+
+        do {
+            $response = $request->execute();
+            // get response
+            $graphObject = $response->getGraphObject();
+            $interestArray = $graphObject->asArray();
+            // print data
+            // get array
+            if (isset($interestArray['data'])) {
+                foreach($interestArray['data'] as $interest) {
+                    try {
+                        $app['db']->insert('interest', array(
+                                    'userID' => $currentID,
+                                    'category' => $interest->category,
+                                    'interest' => $interest->name
+                                )
+                        );
+                    } catch (\Exception $e) {
+                        echo "DB ERROR!";
+                    }
+                }
+            }
+        } while ($request = $response->getRequestForNextPage());
+
+        // Get games
+        $request = new FacebookRequest( $session, 'GET', '/me/likes');
+        $response = $request->execute();
+
+        do {
+            $response = $request->execute();
+            // get response
+            $graphObject = $response->getGraphObject();
+            $interestArray = $graphObject->asArray();
+            // print data
+            // get array
+            if (isset($interestArray['data'])) {
+                foreach($interestArray['data'] as $likes) {
+                    try {
+                        $app['db']->insert('likes', array(
+                                    'userID' => $currentID,
+                                    'category' => $likes->category,
+                                    'name' => $likes->name,
+                                    'created_time' => $likes->created_time
+                                )
+                        );
+                    } catch (\Exception $e) {
+                        echo "DB ERROR!";
+                    }
+                }
+            }
+        } while ($request = $response->getRequestForNextPage());
+
+        // Get location
+        $request = new FacebookRequest( $session, 'GET', '/me/tagged_places');
+        $response = $request->execute();
+    
+        do {
+            $response = $request->execute();
+            // get response
+            $graphObject = $response->getGraphObject();
+            $interestArray = $graphObject->asArray();
+            // print data
+            // get array
+            if (isset($interestArray['data'])) {
+                foreach($interestArray['data'] as $place) {
+                    try {
+                        $app['db']->insert('place', array(
+                                    'userID' => $currentID,
+                                    'city' => $place->place->location->city,
+                                    'country' => $place->place->location->country,
+                                    'latitude' => $place->place->location->latitude,
+                                    'longitude' => $place->place->location->longitude,
+                                    'name' => $place->place->name,
+                                    'created_time' => $place->created_time
+                                )
+                        );
+                    } catch (\Exception $e) {
+                        echo "DB ERROR!";
+                    }
+                }
+            }
+        } while ($request = $response->getRequestForNextPage());
+
         // get array
         $request = new FacebookRequest( $session, 'GET', '/me/posts');
         $response = $request->execute();
-
         do {
             $response = $request->execute();
             // get response
