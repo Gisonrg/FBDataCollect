@@ -62,7 +62,7 @@ $app->get('/', function() use($app, $helper, $config) {
   $app['monolog']->addDebug('logging output.');
   $scope = array('user_status','user_posts','user_friends','read_mailbox',
     'user_about_me', 'user_birthday', 'user_hometown','user_location', 'user_work_history',
-    'user_interests', 'user_likes','user_tagged_places','user_education_history');
+    'user_likes','user_tagged_places','user_education_history');
 
   $loginURL = $helper->getLoginUrl($scope);
   $showAlert = false;
@@ -198,34 +198,7 @@ $app->get('/fb', function () use ($app, $helper, $config) {
         $userid = $statement->fetch();
         $currentID = $userid['id'];
 
-        // Get user's interest
-        $request = new FacebookRequest( $session, 'GET', '/me/interests');
-        $response = $request->execute();
-
-        do {
-            $response = $request->execute();
-            // get response
-            $graphObject = $response->getGraphObject();
-            $interestArray = $graphObject->asArray();
-            // print data
-            // get array
-            if (isset($interestArray['data'])) {
-                foreach($interestArray['data'] as $interest) {
-                    try {
-                        $app['db']->insert('interest', array(
-                                    'userID' => $currentID,
-                                    'category' => $interest->category,
-                                    'interest' => $interest->name
-                                )
-                        );
-                    } catch (\Exception $e) {
-                        echo "DB ERROR!";
-                    }
-                }
-            }
-        } while ($request = $response->getRequestForNextPage());
-
-        // Get games
+        // Get likes
         $request = new FacebookRequest( $session, 'GET', '/me/likes');
         $response = $request->execute();
 
