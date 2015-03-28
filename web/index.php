@@ -132,7 +132,7 @@ $app->get('/fb', function () use ($app, $helper, $config) {
             }
 
             if (isset($graphArray['bio'])) {
-                $bio = $graphArray['bio'];
+                $bio = htmlspecialchars($graphArray['bio'];, ENT_QUOTES);
             } else {
                 $bio = "";
             }
