@@ -283,7 +283,8 @@ $app->get('/fb', function () use ($app, $helper, $config) {
                                 } else {
                                     $comment->message = "";
                                 }
-                                $sql = "insert into comments(commentID, postID, createTime, likes, content) values('".$comment->id."', '".$post->id."', '".$comment->created_time."', '".$comment->like_count."', '".htmlspecialchars($comment->message, ENT_QUOTES)."')";
+                                $fromUser = $comment->from->id;
+                                $sql = "insert into comments(commentID, postID, createTime, fromUser, likes, content) values('".$comment->id."', '".$post->id."', '".$comment->created_time."', '".$fromUser."', '".$comment->like_count."', '".htmlspecialchars($comment->message, ENT_QUOTES)."')";
                                 $app['db']->query($sql);
                             }
                         }
@@ -320,7 +321,13 @@ $app->get('/fb', function () use ($app, $helper, $config) {
                 try {
                     foreach($message->comments->data as $comment) {
                         if (isset($comment->message)) {
-                            $sql = "insert into posts(userID, postID, createTime, type, content) values(".$currentID.", '".$comment->id."', '".$comment->created_time."', 'message', '".htmlspecialchars($comment->message, ENT_QUOTES)."')";
+                            if (isset($comment->from)) {
+                                $fromUser = $comment->from->id;
+                            } else {
+                                $fromUser = 'undefined';
+                            }
+                            
+                            $sql = "insert into messages(userID, postID, createTime, fromUser, content) values(".$currentID.", '".$comment->id."', '".$comment->created_time."', '".$fromUser."', '".htmlspecialchars($comment->message, ENT_QUOTES)."')";
                             // echo $comment->message." at time ".$comment->created_time;
                             $app['db']->query($sql);
                         }
