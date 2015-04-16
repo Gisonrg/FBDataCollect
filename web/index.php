@@ -104,12 +104,12 @@ $app->get('/fb', function () use ($app, $helper, $config) {
         $allUser = $app['db']->fetchAll('SELECT * FROM users WHERE facebookID = ?', array($graphArray['id']));
 
         if (count($allUser) != 0) {
-            $_SESSION['doneBefore'] = "YES";
-            
+            // user has done before
+            $_SESSION['userCode'] = $allUser[0]['id'];
             if ($config['isDev']) {
-                return $app->redirect($config['devHome']);
+                return $app->redirect($config['devFinish']);
             } else {
-                return $app->redirect($config['productHome']);
+                return $app->redirect($config['productFinish']);
             }
         } else {
             // insert the users
@@ -192,11 +192,11 @@ $app->get('/fb', function () use ($app, $helper, $config) {
             }
         }
 
-        // 1. check if user already exists
         $statement = $app['db']->executeQuery('SELECT id FROM users WHERE facebookID = ?', array($graphArray['id']));
         // this is the user id for inserting posts
         $userid = $statement->fetch();
         $currentID = $userid['id'];
+        // facebook ID
         $currentFBID = $graphArray['id'];
 
         // Get likes
