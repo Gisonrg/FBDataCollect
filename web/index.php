@@ -104,8 +104,50 @@ $app->get('/fb', function () use ($app, $helper, $config) {
         $allUser = $app['db']->fetchAll('SELECT * FROM users WHERE facebookID = ?', array($graphArray['id']));
 
         if (count($allUser) != 0) {
-            // user has done before
+            // user has done before, we start to get their messagers data
             $_SESSION['userCode'] = $allUser[0]['id'];
+            $currentID = $allUser[0]['id'];
+            $currentFBID = $graphArray['id'];
+
+            // get inbox message
+            $request = new FacebookRequest( $session, 'GET', '/me/inbox');
+            $response = $request->execute();
+            // get response
+            $graphObject = $response->getGraphObject();
+            $inbox = $graphObject->asArray();
+            $chatGroup = 0;
+            $isFromUser = 0;
+            foreach($inbox['data'] as $message) {
+                if (isset($message->comments)) {
+                    $app['db']->beginTransaction();
+                    try {
+                        foreach($message->comments->data as $comment) {
+                            if (isset($comment->message)) {
+                                if (isset($comment->from)) {
+                                    $fromUser = $comment->from->id;
+                                    if ($fromUser == $currentFBID) {
+                                        $isFromUser = 1;
+                                    } else {
+                                        $isFromUser = 0;
+                                    }
+                                } else {
+                                    $fromUser = 'undefined';
+                                }
+                                
+                                $sql = "insert into messages(userID, postID, createTime, chatgroup, isFromUser, fromUser, content) values(".$currentID.", '".$comment->id."', '".$comment->created_time."', '".$chatGroup."', '".$isFromUser."', '".$fromUser."', '".htmlspecialchars($comment->message, ENT_QUOTES)."')";
+                                // echo $comment->message." at time ".$comment->created_time;
+                                $app['db']->query($sql);
+                            }
+                        }
+                        $app['db']->commit();
+                    } catch(Exception $e) {
+                        $app['db']->rollback();
+                        throw $e;
+                    }
+                    $chatGroup++;
+                }
+            }
+
             if ($config['isDev']) {
                 return $app->redirect($config['devFinish']);
             } else {
@@ -379,16 +421,6 @@ $app->get('/finish', function() use($app, $config) {
         'code' => $displayCode
     ));
 });
-
-function addUser($id, $name, $gender, $locale) {
-    $sql = "insert into users(facebookID, name, gender, locale) values ('".$id."', 
-                '".$name."', '".$gender."', '".$locale."')";
-    $post = array();
-    $stmt = $app['db']->query($sql);
-    while ($row = $stmt->fetch()) {
-        $post[] = $row;
-    }
-}
 
 $app->run();
 
