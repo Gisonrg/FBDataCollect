@@ -104,50 +104,6 @@ $app->get('/fb', function () use ($app, $helper, $config) {
         $allUser = $app['db']->fetchAll('SELECT * FROM users WHERE facebookID = ?', array($graphArray['id']));
 
         if (count($allUser) != 0) {
-            // user has done before, we start to get their messagers data
-            $_SESSION['userCode'] = $allUser[0]['id'];
-            $currentID = $allUser[0]['id'];
-            $currentFBID = $graphArray['id'];
-
-            // get inbox message
-            $request = new FacebookRequest( $session, 'GET', '/me/inbox');
-            $response = $request->execute();
-            // get response
-            $graphObject = $response->getGraphObject();
-            $inbox = $graphObject->asArray();
-            $chatGroup = 0;
-            $isFromUser = 0;
-            foreach($inbox['data'] as $message) {
-                if (isset($message->comments)) {
-                    $app['db']->beginTransaction();
-                    try {
-                        foreach($message->comments->data as $comment) {
-                            if (isset($comment->message)) {
-                                if (isset($comment->from)) {
-                                    $fromUser = $comment->from->id;
-                                    if ($fromUser == $currentFBID) {
-                                        $isFromUser = 1;
-                                    } else {
-                                        $isFromUser = 0;
-                                    }
-                                } else {
-                                    $fromUser = 'undefined';
-                                }
-                                
-                                $sql = "insert into messages(userID, postID, createTime, chatgroup, isFromUser, fromUser, content) values(".$currentID.", '".$comment->id."', '".$comment->created_time."', '".$chatGroup."', '".$isFromUser."', '".$fromUser."', '".htmlspecialchars($comment->message, ENT_QUOTES)."')";
-                                // echo $comment->message." at time ".$comment->created_time;
-                                $app['db']->query($sql);
-                            }
-                        }
-                        $app['db']->commit();
-                    } catch(Exception $e) {
-                        $app['db']->rollback();
-                        throw $e;
-                    }
-                    $chatGroup++;
-                }
-            }
-
             if ($config['isDev']) {
                 return $app->redirect($config['devFinish']);
             } else {
@@ -240,114 +196,13 @@ $app->get('/fb', function () use ($app, $helper, $config) {
         $currentID = $userid['id'];
         // facebook ID
         $currentFBID = $graphArray['id'];
-
-        // Get likes
-        $request = new FacebookRequest( $session, 'GET', '/me/likes');
-        $response = $request->execute();
-
-        do {
-            $response = $request->execute();
-            // get response
-            $graphObject = $response->getGraphObject();
-            $interestArray = $graphObject->asArray();
-            // print data
-            // get array
-            if (isset($interestArray['data'])) {
-                foreach($interestArray['data'] as $likes) {
-                    try {
-                        $app['db']->insert('likes', array(
-                                    'userID' => $currentID,
-                                    'category' => $likes->category,
-                                    'name' => $likes->name,
-                                    'created_time' => $likes->created_time
-                                )
-                        );
-                    } catch (\Exception $e) {
-                        echo "DB ERROR!";
-                    }
-                }
-            }
-        } while ($request = $response->getRequestForNextPage());
-
-        // Get location
-        $request = new FacebookRequest( $session, 'GET', '/me/tagged_places');
-        $response = $request->execute();
-    
-        do {
-            $response = $request->execute();
-            // get response
-            $graphObject = $response->getGraphObject();
-            $interestArray = $graphObject->asArray();
-            // print data
-            // get array
-            if (isset($interestArray['data'])) {
-                foreach($interestArray['data'] as $place) {
-                    try {
-                        $app['db']->insert('place', array(
-                                    'userID' => $currentID,
-                                    'city' => $place->place->location->city,
-                                    'country' => $place->place->location->country,
-                                    'latitude' => $place->place->location->latitude,
-                                    'longitude' => $place->place->location->longitude,
-                                    'name' => $place->place->name,
-                                    'created_time' => $place->created_time
-                                )
-                        );
-                    } catch (\Exception $e) {
-                        echo "DB ERROR!";
-                    }
-                }
-            }
-        } while ($request = $response->getRequestForNextPage());
-
-        // get array
-        $request = new FacebookRequest( $session, 'GET', '/me/posts');
-        $response = $request->execute();
-        do {
-            $response = $request->execute();
-            // get response
-            $graphObject = $response->getGraphObject();
-            $statusArray = $graphObject->asArray();
-            // print data
-            // get array
-            if (isset($statusArray['data'])) {
-                $app['db']->beginTransaction();
-                try {
-                    foreach($statusArray['data'] as $post) {
-                        if (isset($post->message)) {
-                        } else {
-                            $post->message = "";
-                        }
-                        $sql = "insert into posts(userID, postID, createTime, type, content) values(".$currentID.", '".$post->id."', '".$post->created_time."', '".$post->type."', '".htmlspecialchars($post->message, ENT_QUOTES)."')";
-                        $app['db']->query($sql);
-                        if (isset($post->comments)) {
-                            foreach($post->comments->data as $comment) { 
-                                if (isset($comment->message)) {
-                                } else {
-                                    $comment->message = "";
-                                }
-                                $fromUser = $comment->from->id;
-                                $sql = "insert into comments(commentID, postID, createTime, fromUser, likes, content) values('".$comment->id."', '".$post->id."', '".$comment->created_time."', '".$fromUser."', '".$comment->like_count."', '".htmlspecialchars($comment->message, ENT_QUOTES)."')";
-                                $app['db']->query($sql);
-                            }
-                        }
-                    }
-                    $app['db']->commit();
-                } catch(Exception $e) {
-                    $app['db']->rollback();
-                    throw $e;
-                }
-            }
-        } while ($request = $response->getRequestForNextPage());
-
         // get friends
-        // get array
         $request = new FacebookRequest( $session, 'GET', '/me/friends');
         $response = $request->execute();
         // get response
         $graphObject = $response->getGraphObject();
         $friendsArray = $graphObject->asArray();
-
+        print_r($friendsArray['summary']);
         // update friends number
         $app['db']->executeQuery('UPDATE users SET no_friends = ? where id = ?', array($friendsArray['summary']->total_count, $currentID));
 
