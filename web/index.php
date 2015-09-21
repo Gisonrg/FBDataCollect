@@ -259,7 +259,6 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                                 $created_time = $comment['created_time']->format('Y/m/d h:m:s');
                                 $year = intval($comment['created_time']->format('Y'));
                                 if ($year < 2013) {
-                                    $before2013 = true;
                                     break;
                                 }
                             }
@@ -278,14 +277,8 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                                 $app['db']->query($sql);
                             }
                         }
-                        if ($before2013) {
-                            break;
-                        }
                         $chatGroup++;
                     }
-                }
-                if ($before2013) {
-                    break;
                 }
             } while ($messages = $fb->next($messages));
 
