@@ -106,7 +106,8 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
         $response = $fb->get('/me', $token);
         $user = $response->getGraphUser();
 
-        $allUser = $app['db']->fetchAll('SELECT * FROM users WHERE facebookID = ?', array($user->getId()));
+        // $allUser = $app['db']->fetchAll('SELECT * FROM users WHERE facebookID = ?', array($user->getId()));
+        $allUser = Array();
 
         if (count($allUser) != 0) {
             $_SESSION['userCode'] = $allUser[0]['id'];
@@ -219,7 +220,6 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                         'name' => $like['name'],
                         'created_time' => $like['created_time']->format('Y/m/d h:i:s')
                     );
-
                     try {
                         $app['db']->insert('likes', $likedata);
                     } catch (\Exception $e) {
@@ -248,42 +248,40 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                 }
             } while ($places = $fb->next($places));
 
-
-
-            $response = $fb->get('/me/inbox', $token);
-            $messages = $response->getGraphEdge();
-            $before2013 = false;
-            do {
-                $chatGroup = 0;
-                foreach ($messages as $message) {
-                    if (isset($message['comments'])) {
-                        foreach ($message['comments'] as $comment) {
-                            if (isset($comment['created_time'])) {
-                                $created_time = $comment['created_time']->format('Y/m/d h:i:s');
-                                $year = intval($comment['created_time']->format('Y'));
-                                if ($year < 2013) {
-                                    break;
-                                }
-                            }
-                            if (isset($comment['message'])) {
-                                if (isset($comment['from'])) {
-                                    $fromUser = $comment['from']['id'];
-                                    if ($fromUser == $user->getId()) {
-                                        $isFromUser = 1;
-                                    } else {
-                                        $isFromUser = 0;
-                                    }
-                                } else {
-                                    $fromUser = 'undefined';
-                                }
-                                $sql = "insert into messages(userID, postID, createTime, chatgroup, isFromUser, fromUser, content) values(".$currentID.", '".$comment['id']."', '".$created_time."', '".$chatGroup."', '".$isFromUser."', '".$fromUser."', '".htmlspecialchars($comment['message'], ENT_QUOTES)."')";
-                                $app['db']->query($sql);
-                            }
-                        }
-                        $chatGroup++;
-                    }
-                }
-            } while ($messages = $fb->next($messages));
+            // $response = $fb->get('/me/inbox', $token);
+            // $messages = $response->getGraphEdge();
+            // $before2013 = false;
+            // do {
+            //     $chatGroup = 0;
+            //     foreach ($messages as $message) {
+            //         if (isset($message['comments'])) {
+            //             foreach ($message['comments'] as $comment) {
+            //                 if (isset($comment['created_time'])) {
+            //                     $created_time = $comment['created_time']->format('Y/m/d h:i:s');
+            //                     $year = intval($comment['created_time']->format('Y'));
+            //                     if ($year < 2013) {
+            //                         break;
+            //                     }
+            //                 }
+            //                 if (isset($comment['message'])) {
+            //                     if (isset($comment['from'])) {
+            //                         $fromUser = $comment['from']['id'];
+            //                         if ($fromUser == $user->getId()) {
+            //                             $isFromUser = 1;
+            //                         } else {
+            //                             $isFromUser = 0;
+            //                         }
+            //                     } else {
+            //                         $fromUser = 'undefined';
+            //                     }
+            //                     $sql = "insert into messages(userID, postID, createTime, chatgroup, isFromUser, fromUser, content) values(".$currentID.", '".$comment['id']."', '".$created_time."', '".$chatGroup."', '".$isFromUser."', '".$fromUser."', '".htmlspecialchars($comment['message'], ENT_QUOTES)."')";
+            //                     $app['db']->query($sql);
+            //                 }
+            //             }
+            //             $chatGroup++;
+            //         }
+            //     }
+            // } while ($messages = $fb->next($messages));
 
             $before2013 = false;
             $response = $fb->get('/me/posts', $token);
