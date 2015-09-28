@@ -1,5 +1,5 @@
 
-# FBDataCollect
+# Social Media Survey - FB app.
 A small survey web application for Facebook data collection for research purpose.
 
 ## Running Locally
