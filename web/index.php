@@ -218,7 +218,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                         'userID' => $currentID,
                         'category' => $like['category'],
                         'name' => $like['name'],
-                        'created_time' => $like['created_time']->format('Y/m/d h:i:s')
+                        'created_time' => $like['created_time']->format('Y/m/d H:i:s')
                     );
                     try {
                         $app['db']->insert('likes', $likedata);
@@ -238,7 +238,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                         'latitude' => $place['place']['location']['latitude'],
                         'longitude' => $place['place']['location']['longitude'],
                         'name' => $place['place']['name'],
-                        'created_time' => $place['created_time']->format('Y/m/d h:i:s')
+                        'created_time' => $place['created_time']->format('Y/m/d H:i:s')
                     );
                     try {
                         $app['db']->insert('place', $placeData);
@@ -256,7 +256,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                     if (isset($message['comments'])) {
                         foreach ($message['comments'] as $comment) {
                             if (isset($comment['created_time'])) {
-                                $created_time = $comment['created_time']->format('Y/m/d h:i:s');
+                                $created_time = $comment['created_time']->format('Y/m/d H:i:s');
                                 $year = intval($comment['created_time']->format('Y'));
                                 if ($year < 2014) {
                                     break;
@@ -290,7 +290,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                 try {
                     foreach ($posts as $post) {
                         if (isset($post['created_time'])) {
-                            $created_time = $post['created_time']->format('Y/m/d h:i:s');
+                            $created_time = $post['created_time']->format('Y/m/d H:i:s');
                             $year = intval($post['created_time']->format('Y'));
                             if ($year < 2014) {
                                 $before2014 = true;
@@ -320,7 +320,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                         if (isset($post['comments'])) {
                             foreach ($post['comments'] as $comment) {
                                 if (isset($comment['created_time'])) {
-                                    $created_time = $comment['created_time']->format('Y/m/d h:i:s');
+                                    $created_time = $comment['created_time']->format('Y/m/d H:i:s');
                                     $year = intval($post['created_time']->format('Y'));
                                     if ($year < 2014) {
                                         break;
