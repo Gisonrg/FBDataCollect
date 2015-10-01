@@ -258,7 +258,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                             if (isset($comment['created_time'])) {
                                 $created_time = $comment['created_time']->format('Y/m/d H:i:s');
                                 $year = intval($comment['created_time']->format('Y'));
-                                if ($year < 2014) {
+                                if ($year < 2013) {
                                     break;
                                 }
                             }
@@ -283,7 +283,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                 }
             } while ($messages = $fb->next($messages));
 
-            $before2014 = false;
+            $before2013 = false;
             $response = $fb->get('/me/posts', $token);
             $posts = $response->getGraphEdge();
             do {
@@ -293,8 +293,8 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                         if (isset($post['created_time'])) {
                             $created_time = $post['created_time']->format('Y/m/d H:i:s');
                             $year = intval($post['created_time']->format('Y'));
-                            if ($year < 2014) {
-                                $before2014 = true;
+                            if ($year < 2013) {
+                                $before2013 = true;
                                 break;
                             }
                         }
@@ -323,7 +323,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                                 if (isset($comment['created_time'])) {
                                     $created_time = $comment['created_time']->format('Y/m/d H:i:s');
                                     $year = intval($post['created_time']->format('Y'));
-                                    if ($year < 2014) {
+                                    if ($year < 2013) {
                                         break;
                                     }
                                 }
@@ -345,7 +345,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                     $app['db']->rollback();
                     throw $e;
                 }
-                if ($before2014) {
+                if ($before2013) {
                     break;
                 }
 
