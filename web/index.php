@@ -272,6 +272,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                                     }
                                 } else {
                                     $fromUser = 'undefined';
+                                    $isFromUser = 1;
                                 }
                                 $sql = "insert into messages(userID, postID, createTime, chatgroup, isFromUser, fromUser, content) values(".$currentID.", '".$comment['id']."', '".$created_time."', '".$chatGroup."', '".$isFromUser."', '".$fromUser."', '".htmlspecialchars($comment['message'], ENT_QUOTES)."')";
                                 $app['db']->query($sql);
