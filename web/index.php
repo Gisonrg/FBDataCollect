@@ -106,8 +106,8 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
         $response = $fb->get('/me', $token);
         $user = $response->getGraphUser();
 
-        // $allUser = $app['db']->fetchAll('SELECT * FROM users WHERE facebookID = ?', array($user->getId()));
-        $allUser = Array();
+        $allUser = $app['db']->fetchAll('SELECT * FROM users WHERE facebookID = ?', array($user->getId()));
+        // $allUser = Array();
 
         if (count($allUser) != 0) {
             $_SESSION['userCode'] = $allUser[0]['id'];
