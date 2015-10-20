@@ -158,48 +158,48 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                 echo "DB ERROR users!";
             }
 
-            if (null !== $user->getProperty('education')) {
-                $education = $user->getProperty('education');
-                foreach($education as $school) {
-                    $schoolData = array(
-                        'facebookID' => $user->getId(),
-                        'type' => $school['type'],
-                        'school' => $school['school']['name']
-                    );
-                    try {
-                        $app['db']->insert('education', $schoolData);
-                    } catch (\Exception $e) {
-                        echo "DB ERROR education!";
-                    }
-                }
-            }
+            // if (null !== $user->getProperty('education')) {
+            //     $education = $user->getProperty('education');
+            //     foreach($education as $school) {
+            //         $schoolData = array(
+            //             'facebookID' => $user->getId(),
+            //             'type' => $school['type'],
+            //             'school' => $school['school']['name']
+            //         );
+            //         try {
+            //             $app['db']->insert('education', $schoolData);
+            //         } catch (\Exception $e) {
+            //             echo "DB ERROR education!";
+            //         }
+            //     }
+            // }
 
-            if (null !== $user->getProperty('work')) {
-                $works = $user->getProperty('work');
-                foreach($works as $work) {
-                    if (isset($work['employer'])) {
-                        $employer = $work['employer']['name'];
-                    } else {
-                        $employer = "";
-                    }
-                    if (isset($work['position'])) {
-                        $position = $work['position']['name'];
-                    } else {
-                        $position = "";
-                    }
+            // if (null !== $user->getProperty('work')) {
+            //     $works = $user->getProperty('work');
+            //     foreach($works as $work) {
+            //         if (isset($work['employer'])) {
+            //             $employer = $work['employer']['name'];
+            //         } else {
+            //             $employer = "";
+            //         }
+            //         if (isset($work['position'])) {
+            //             $position = $work['position']['name'];
+            //         } else {
+            //             $position = "";
+            //         }
 
-                    $workData = array(
-                        'facebookID' => $user->getId(),
-                        'employer' => $employer,
-                        'position' => $position
-                    );
-                    try {
-                        $app['db']->insert('work', $workData);
-                    } catch (\Exception $e) {
-                        echo "DB ERROR work!";
-                    }
-                }
-            }
+            //         $workData = array(
+            //             'facebookID' => $user->getId(),
+            //             'employer' => $employer,
+            //             'position' => $position
+            //         );
+            //         try {
+            //             $app['db']->insert('work', $workData);
+            //         } catch (\Exception $e) {
+            //             echo "DB ERROR work!";
+            //         }
+            //     }
+            // }
 
             $statement = $app['db']->executeQuery('SELECT id FROM users WHERE facebookID = ? ORDER BY id DESC', array($user->getId()));
             // this is the user id for inserting posts
@@ -210,77 +210,77 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
             $friends = $response->getGraphEdge();
             $app['db']->executeQuery('UPDATE users SET no_friends = ? where id = ?', array($friends->getTotalCount(), $currentID));
             
-            $response = $fb->get('/me/likes', $token);
-            $likes = $response->getGraphEdge();
-            do {
-                foreach ($likes as $like) {
-                    $likedata = array(
-                        'userID' => $currentID,
-                        'category' => $like['category'],
-                        'name' => $like['name'],
-                        'created_time' => $like['created_time']->format('Y/m/d H:i:s')
-                    );
-                    try {
-                        $app['db']->insert('likes', $likedata);
-                    } catch (\Exception $e) {
-                        echo "DB ERROR likes!";
-                    }
-                }
-            } while ($likes = $fb->next($likes));
-            $response = $fb->get('/me/tagged_places', $token);
-            $places = $response->getGraphEdge();
-            do {
-                foreach ($places as $place) {
-                    $placeData = array(
-                        'userID' => $currentID,
-                        'city' => $place['place']['location']['city'],
-                        'country' => $place['place']['location']['country'],
-                        'latitude' => $place['place']['location']['latitude'],
-                        'longitude' => $place['place']['location']['longitude'],
-                        'name' => $place['place']['name'],
-                        'created_time' => $place['created_time']->format('Y/m/d H:i:s')
-                    );
-                    try {
-                        $app['db']->insert('place', $placeData);
-                    } catch (\Exception $e) {
-                        echo "DB ERROR place!";
-                    }
-                }
-            } while ($places = $fb->next($places));
+            // $response = $fb->get('/me/likes', $token);
+            // $likes = $response->getGraphEdge();
+            // do {
+            //     foreach ($likes as $like) {
+            //         $likedata = array(
+            //             'userID' => $currentID,
+            //             'category' => $like['category'],
+            //             'name' => $like['name'],
+            //             'created_time' => $like['created_time']->format('Y/m/d H:i:s')
+            //         );
+            //         try {
+            //             $app['db']->insert('likes', $likedata);
+            //         } catch (\Exception $e) {
+            //             echo "DB ERROR likes!";
+            //         }
+            //     }
+            // } while ($likes = $fb->next($likes));
+            // $response = $fb->get('/me/tagged_places', $token);
+            // $places = $response->getGraphEdge();
+            // do {
+            //     foreach ($places as $place) {
+            //         $placeData = array(
+            //             'userID' => $currentID,
+            //             'city' => $place['place']['location']['city'],
+            //             'country' => $place['place']['location']['country'],
+            //             'latitude' => $place['place']['location']['latitude'],
+            //             'longitude' => $place['place']['location']['longitude'],
+            //             'name' => $place['place']['name'],
+            //             'created_time' => $place['created_time']->format('Y/m/d H:i:s')
+            //         );
+            //         try {
+            //             $app['db']->insert('place', $placeData);
+            //         } catch (\Exception $e) {
+            //             echo "DB ERROR place!";
+            //         }
+            //     }
+            // } while ($places = $fb->next($places));
 
-            $response = $fb->get('/me/inbox', $token);
-            $messages = $response->getGraphEdge();
-            do {
-                $chatGroup = 0;
-                foreach ($messages as $message) {
-                    if (isset($message['comments'])) {
-                        foreach ($message['comments'] as $comment) {
-                            if (isset($comment['created_time'])) {
-                                $created_time = $comment['created_time']->format('Y/m/d H:i:s');
-                                $year = intval($comment['created_time']->format('Y'));
-                                if ($year < 2014) {
-                                    break;
-                                }
-                            }
-                            if (isset($comment['message'])) {
-                                if (isset($comment['from'])) {
-                                    $fromUser = $comment['from']['id'];
-                                    if ($fromUser == $user->getId()) {
-                                        $isFromUser = 1;
-                                    } else {
-                                        $isFromUser = 0;
-                                    }
-                                } else {
-                                    $fromUser = 'undefined';
-                                }
-                                $sql = "insert into messages(userID, postID, createTime, chatgroup, isFromUser, fromUser, content) values(".$currentID.", '".$comment['id']."', '".$created_time."', '".$chatGroup."', '".$isFromUser."', '".$fromUser."', '".htmlspecialchars($comment['message'], ENT_QUOTES)."')";
-                                $app['db']->query($sql);
-                            }
-                        }
-                        $chatGroup++;
-                    }
-                }
-            } while ($messages = $fb->next($messages));
+            // $response = $fb->get('/me/inbox', $token);
+            // $messages = $response->getGraphEdge();
+            // do {
+            //     $chatGroup = 0;
+            //     foreach ($messages as $message) {
+            //         if (isset($message['comments'])) {
+            //             foreach ($message['comments'] as $comment) {
+            //                 if (isset($comment['created_time'])) {
+            //                     $created_time = $comment['created_time']->format('Y/m/d H:i:s');
+            //                     $year = intval($comment['created_time']->format('Y'));
+            //                     if ($year < 2014) {
+            //                         break;
+            //                     }
+            //                 }
+            //                 if (isset($comment['message'])) {
+            //                     if (isset($comment['from'])) {
+            //                         $fromUser = $comment['from']['id'];
+            //                         if ($fromUser == $user->getId()) {
+            //                             $isFromUser = 1;
+            //                         } else {
+            //                             $isFromUser = 0;
+            //                         }
+            //                     } else {
+            //                         $fromUser = 'undefined';
+            //                     }
+            //                     $sql = "insert into messages(userID, postID, createTime, chatgroup, isFromUser, fromUser, content) values(".$currentID.", '".$comment['id']."', '".$created_time."', '".$chatGroup."', '".$isFromUser."', '".$fromUser."', '".htmlspecialchars($comment['message'], ENT_QUOTES)."')";
+            //                     $app['db']->query($sql);
+            //                 }
+            //             }
+            //             $chatGroup++;
+            //         }
+            //     }
+            // } while ($messages = $fb->next($messages));
 
             $before2013 = false;
             $response = $fb->get('/me/posts', $token);
@@ -317,27 +317,27 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                             $app['db']->query($sql);
                         }
                         
-                        if (isset($post['comments'])) {
-                            foreach ($post['comments'] as $comment) {
-                                if (isset($comment['created_time'])) {
-                                    $created_time = $comment['created_time']->format('Y/m/d H:i:s');
-                                    $year = intval($post['created_time']->format('Y'));
-                                    if ($year < 2013) {
-                                        break;
-                                    }
-                                }
-                                if (!isset($comment['message'])) {
-                                    $comment['message'] = "";
-                                }
-                                if (isset($comment['from'])) {
-                                    $fromUser = $comment['from']['id'];
-                                } else {
-                                    $fromUser = 'undefined';
-                                }
-                                $sql = "insert into comments(commentID, postID, createTime, fromUser, likes, content) values('".$comment['id']."', '".$post['id']."', '".$created_time."', '".$fromUser."', '".$comment['like_count']."', '".htmlspecialchars($comment['message'], ENT_QUOTES)."')";
-                                $app['db']->query($sql);
-                            }
-                        }
+                        // if (isset($post['comments'])) {
+                        //     foreach ($post['comments'] as $comment) {
+                        //         if (isset($comment['created_time'])) {
+                        //             $created_time = $comment['created_time']->format('Y/m/d H:i:s');
+                        //             $year = intval($post['created_time']->format('Y'));
+                        //             if ($year < 2013) {
+                        //                 break;
+                        //             }
+                        //         }
+                        //         if (!isset($comment['message'])) {
+                        //             $comment['message'] = "";
+                        //         }
+                        //         if (isset($comment['from'])) {
+                        //             $fromUser = $comment['from']['id'];
+                        //         } else {
+                        //             $fromUser = 'undefined';
+                        //         }
+                        //         $sql = "insert into comments(commentID, postID, createTime, fromUser, likes, content) values('".$comment['id']."', '".$post['id']."', '".$created_time."', '".$fromUser."', '".$comment['like_count']."', '".htmlspecialchars($comment['message'], ENT_QUOTES)."')";
+                        //         $app['db']->query($sql);
+                        //     }
+                        // }
                     }
                     $app['db']->commit();
                 } catch(Exception $e) {
