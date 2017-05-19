@@ -209,7 +209,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
             $response = $fb->get('/me/friends', $token);
             $friends = $response->getGraphEdge();
             $app['db']->executeQuery('UPDATE users SET no_friends = ? where id = ?', array($friends->getTotalCount(), $currentID));
-            
+
             // $response = $fb->get('/me/likes', $token);
             // $likes = $response->getGraphEdge();
             // do {
@@ -316,7 +316,7 @@ $app->get('/fb', function () use ($app, $helper, $config, $fb) {
                             $sql = "insert into posts(userID, postID, createTime, type, content) values(".$currentID.", '".$post['id']."', '".$created_time."', '".$post['type']."', '".htmlspecialchars($post['story'], ENT_QUOTES)."')";
                             $app['db']->query($sql);
                         }
-                        
+
                         // if (isset($post['comments'])) {
                         //     foreach ($post['comments'] as $comment) {
                         //         if (isset($comment['created_time'])) {
