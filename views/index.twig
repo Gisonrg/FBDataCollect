@@ -14,30 +14,31 @@
     </head>
     <body>
         <body>
+          <!-- Static navbar -->
+          <nav class="navbar navbar-inverse">
+              <div class="container-fluid">
+                  <div class="navbar-header">
+                      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                          <span class="sr-only">Toggle navigation</span>
+                          <span class="icon-bar"></span>
+                          <span class="icon-bar"></span>
+                          <span class="icon-bar"></span>
+                      </button>
+                      <a class="navbar-brand" href="#">Survey</a>
+                  </div>
+                  <div id="navbar" class="navbar-collapse collapse">
+                      <ul class="nav navbar-nav">
+                          <li class="active">
+                              <a href="/">Home</a>
+                          </li>
+                      </ul>
+                  </div>
+                  <!--/.nav-collapse -->
+              </div>
+              <!--/.container-fluid -->
+          </nav>
             <div class="container">
-                <!-- Static navbar -->
-                <nav class="navbar navbar-inverse">
-                    <div class="container-fluid">
-                        <div class="navbar-header">
-                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                                <span class="sr-only">Toggle navigation</span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                            </button>
-                            <a class="navbar-brand" href="#">Survey</a>
-                        </div>
-                        <div id="navbar" class="navbar-collapse collapse">
-                            <ul class="nav navbar-nav">
-                                <li class="active">
-                                    <a href="/">Home</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <!--/.nav-collapse -->
-                    </div>
-                    <!--/.container-fluid -->
-                </nav>
+
                 {% if isShowAlert == true %}
                     <div class="alert alert-danger alert-dismissible" role="alert">
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -49,11 +50,11 @@
                 {% endif %}
 
                 <!-- Main component for a primary marketing message or call to action -->
-                <div class="jumbotron">
+                <div class="jumbotron" id="content_first">
                     <div style="text-align:center;">
                         <h1>Survey for Social Media Usage</h1>
                     </div>
-                    <div id="content_first">
+                    <div>
                         <p>Thank you for participating in this study. This is an academic study aimed at understanding your Facebook usage. There are
                             <b>two steps</b>
                             to complete the study.
@@ -80,44 +81,51 @@
                         </p>
                     </div>
                 </div>
-                <div id="content_second" style="display: none;">
+                <div id="content_second" style="display: none;" class="row">
+                  <div class="col-md-10 col-md-offset-1">
+                    <div class="page-header">
+                        <h1>Consent Form</h1>
+                    </div>
                     <h3>Please acknowledge the following consent form to proceed:</h3>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="acknowledged">
-                            I hereby acknowledge that:
-                        </label>
-                    </div>
-                    <div>
-                        1. I have agreed to take part in the above research.<br>
-                        2. I have received a copy of this information sheet that explains the use of my data in this research. I understand its contents and agree to donate my data for the use of this research.<br>
-                        3. I can withdraw from the research at any point of time by informing the Principal Investigator and all my data will be discarded.<br>
-                        4. I will not have any financial benefits that result from the commercial development of this research.<br>
-                        5. I consent to have the coded data made available for future research.<br>
-                    </div>
-                    <br>
-                    <p>
-                        <strong>We advise people who are addicted to SNSs to seek professional help from psychological counsellors. Do you want to be informed if you are likely to be addicted to SNSs?</strong>
-                    </p>
-                    <div style="text-align: center;">
-                        <div class="radio-inline" style="margin-right: 1em;">
+                    <div style="font-size: 18px;">
+                        <div class="checkbox">
                             <label>
-                                <input type="radio" name="sns" id="checked1" value="yes" checked>
-                                Yes
+                                <input type="checkbox" id="acknowledged">
+                                <strong>I hereby acknowledge that:</strong>
                             </label>
                         </div>
-                        <div class="radio-inline" style="margin-left: 1em;">
-                          <label>
-                              <input type="radio" name="sns" id="checked2" value="no">
-                              No
-                          </label>
+                        <div>
+                            1. I have agreed to take part in the above research.<br>
+                            2. I have received a copy of this <a href="file/information_sheet.docx" target="_blank">information sheet</a> that explains the use of my data in this research. I understand its contents and agree to donate my data for the use of this research.<br>
+                            3. I can withdraw from the research at any point of time by informing the Principal Investigator and all my data will be discarded.<br>
+                            4. I will not have any financial benefits that result from the commercial development of this research.<br>
+                            5. I consent to have the coded data made available for future research.<br>
                         </div>
+                        <br>
+                        <p>
+                            <strong>We advise people who are addicted to SNSs to seek professional help from psychological counsellors. Do you want to be informed if you are likely to be addicted to SNSs?</strong>
+                        </p>
+                        <div style="text-align: center;">
+                            <div class="radio-inline" style="margin-right: 1em;">
+                                <label>
+                                    <input type="radio" name="sns" id="checked1" value="yes" checked>
+                                    Yes
+                                </label>
+                            </div>
+                            <div class="radio-inline" style="margin-left: 1em;">
+                                <label>
+                                    <input type="radio" name="sns" id="checked2" value="no">
+                                    No
+                                </label>
+                            </div>
+                        </div>
+                        <p style="margin:0 auto; text-align:center;">
+                            <button class="btn btn-primary" id="submitBtn">Submit</button>
+                        </p>
                     </div>
-                    <p style="margin:0 auto; text-align:center;">
-                        <button class="btn btn-primary" id="submitBtn">Submit</button>
-                    </p>
-                </div>
+                  </div>
 
+                </div>
             </div>
             <!-- /container -->
 
